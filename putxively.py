@@ -13,6 +13,7 @@ api = xively.XivelyAPIClient(XIVELY_API_KEY)
 feed = api.feeds.get(XIVELY_FEED_ID)
 
 my_data = []
+my_dict = { }
 
 import serial, sys, time, commands, re
 
@@ -22,8 +23,8 @@ device = None
 baud = 9600
 
 if not device:
-    #devicelist = commands.getoutput("ls /dev/tty.usbmodem*")
-    devicelist = commands.getoutput("ls /dev/ttyACM*")     # this works on Linux
+    devicelist = commands.getoutput("ls /dev/tty.usbmodem*")
+    #devicelist = commands.getoutput("ls /dev/ttyACM*")     # this works on Linux
     #devicelist = commands.getoutput("ls /dev/tty.usb*")     # this works on Teensy
     if devicelist[0] == '/': device = devicelist
     if not device: 
@@ -49,7 +50,7 @@ types = { 0: 'pressure', 1: 'one-wire-temperature',
 
 # while True:
 try: 
-    for x in xrange(1,5):
+    for x in xrange(1,10):
         cmd = serialport.readline().strip()
         print "===== %s" % cmd
         m = re.findall(r"NODE: (\d+) TYPE: (\d+) VALUE: \[([^\[\]]*)\]", cmd)
@@ -65,29 +66,32 @@ try:
                 print "TYPE ===== 2 ====="
                 val = x[2].split(":")
                 print "\tTEMPERATURE: %s HUMIDITY %s" %(val[0], val[1])
-                my_data.append(xively.Datastream(id='humidity-'+node_id, current_value=val[1]))
-                my_data.append(xively.Datastream(id='temperature-'+node_id, current_value=val[0]))
+                my_dict['temperature-'+node_id] = xively.Datastream(id='temperature-'+node_id, current_value=val[0])
+                my_dict['humidity-'+node_id] = xively.Datastream(id='humidity-'+node_id, current_value=val[1])
                 # update_datastream(feed=feed, channel = 'temperature-'+node_id, sensor_data = val[0])
                 # update_datastream(feed=feed, channel = 'humidity-'+node_id, sensor_data = val[1])
             else:
                 print "TYPE ===== %s =====" %feed_type 
                 print "\ttype: %10s node: %s" %(feed_type, x[0])
-                my_data.append(xively.Datastream(id=feed_type+"-"+node_id, current_value=x[2], at=now))
+                my_dict[feed_type+"-"+node_id] = xively.Datastream(id=feed_type+"-"+node_id, current_value=x[2], at=now)
                 # update_datastream(feed=feed, channel = feed_type, sensor_data = x[2])
                 
         print "===" * 20
         print "======= DATA ======"
-        print my_data
-        feed.datastreams = my_data
-        print feed.update()
-        my_data = []
+        print my_dict.values()
+    feed.datastreams = my_dict.values() 
+    print feed.update()
+
+        # my_data = []
         # feed.datastreams = [
         #     xively.Datastream(id='tmpr', current_value=10, at=now),
         #     xively.Datastream(id='watts', current_value=20, at=now),
         # ]
-        time.sleep(4)
-except Exception:
-    print "ERRROR"
+        # time.sleep()
+
+
+except Exception as e:
+    print "ERRROR", e
 
 serialport.close()
 print "DONE"
