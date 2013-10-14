@@ -4,9 +4,9 @@ import sys
 import time
 import xml.etree.ElementTree as etree
 
-XIVELY_API_KEY = "oZANSQsy5C7Bcjf76ARtNDoYV6uBqPKAUUERb9tsphVRZpv5"
+XIVELY_API_KEY = "QCw2j6DWXd9pmXvAFTj6g2ChUr0JI5V7v3h93CfDUlWUW6Kj"
 
-XIVELY_FEED_ID = 1937304417
+XIVELY_FEED_ID = 940674532
 DEBUG = True
 
 api = xively.XivelyAPIClient(XIVELY_API_KEY)
